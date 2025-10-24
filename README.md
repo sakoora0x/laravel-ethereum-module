@@ -108,3 +108,44 @@ use \sakoora0x\LaravelEthereumModule\Facades\Ethereum;
 
 $wallet = Ethereum::createWallet('My wallet');
 ```
+
+## Testing
+
+The package includes a comprehensive test suite covering all major functionality.
+
+### Running Tests
+
+Install dev dependencies:
+```bash
+composer install --dev
+```
+
+Run the test suite:
+```bash
+composer test
+```
+
+Or run tests directly with PHPUnit:
+```bash
+vendor/bin/phpunit
+```
+
+Run tests with coverage report:
+```bash
+composer test-coverage
+```
+
+### Test Coverage
+
+The test suite includes tests for:
+- Mnemonic generation and validation (12, 15, 18 word phrases)
+- HD wallet creation and management
+- Address generation and validation
+- Checksum address conversion
+- Private key to address conversion
+- Password encryption and wallet security
+- Model relationships and database operations
+- Service provider registration
+- Configuration loading
+
+For more details about testing, see [tests/README.md](tests/README.md).

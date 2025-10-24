@@ -25,14 +25,24 @@
         "illuminate/contracts": "^10.0|^11.0|^12.0",
         "spatie/laravel-package-tools": "^1.92.0",
         "brick/math": "*",
-        "furqansiddiqui/bip39-mnemonic-php": "^0.2.1",
-        "minter/minter-php-bip-44": "^1.2",
+        "sakoora0x/bip39-mnemonic-php": "^1.0.0",
+        "sakoora0x/php-bip-44": "^1.0.0",
         "kornrunner/ethereum-address": "^0.3.0",
         "kornrunner/ethereum-offline-raw-tx": "^0.8.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "phpunit/phpunit": "^10.0|^11.0",
+        "mockery/mockery": "^1.6"
     },
     "autoload": {
         "psr-4": {
             "sakoora0x\\LaravelEthereumModule\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "sakoora0x\\LaravelEthereumModule\\Tests\\": "tests/"
         }
     },
     "extra": {
@@ -44,6 +54,10 @@
                 "Ethereum": "sakoora0x\\LaravelEthereumModule\\Facades\\Ethereum"
             }
         }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
     },
     "minimum-stability": "dev",
     "prefer-stable": true

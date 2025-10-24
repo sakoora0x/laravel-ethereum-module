@@ -28,7 +28,7 @@ return new class extends Migration {
             $table->integer('confirmations')->default(0);
             $table->timestamp('time_at');
 
-            $table->unique(['address_id', 'txid'], 'unique_index');
+            $table->unique(['address_id', 'txid'], 'ethereum_deposits_unique');
         });
     }
 

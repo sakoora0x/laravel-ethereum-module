@@ -2,8 +2,8 @@
 
 namespace sakoora0x\LaravelEthereumModule\Concerns;
 
-use FurqanSiddiqui\BIP39\BIP39;
-use FurqanSiddiqui\BIP39\Language\English;
+use sakoora0x\BIP39\BIP39;
+use sakoora0x\BIP39\Language\English;
 
 trait Mnemonic
 {
