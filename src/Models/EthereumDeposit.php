@@ -59,7 +59,7 @@ class EthereumDeposit extends Model
         /** @var class-string<EthereumToken> $model */
         $model = Ethereum::getModel(EthereumModel::Token);
 
-        return $this->belongsTo($model, 'token_address', 'address');
+        return $this->belongsTo($model, 'token_id');
     }
 
     protected function symbol(): Attribute

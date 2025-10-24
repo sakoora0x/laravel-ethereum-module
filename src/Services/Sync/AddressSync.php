@@ -33,6 +33,7 @@ class AddressSync extends BaseSync
     /** @var array<string, EthereumToken> */
     protected array $tokens;
     protected bool $force;
+    protected ?int $fromBlock;
     protected bool $touchEnabled;
     protected int $touchPeriod;
     protected ?WebhookHandlerInterface $webhookHandler;
@@ -40,10 +41,11 @@ class AddressSync extends BaseSync
     protected array $webhooks = [];
     protected int $blockNumber;
 
-    public function __construct(EthereumAddress $address, bool $force = false)
+    public function __construct(EthereumAddress $address, bool $force = false, ?int $fromBlock = null)
     {
         $this->address = $address;
         $this->force = $force;
+        $this->fromBlock = $fromBlock;
 
         $this->wallet = $address->wallet;
         $this->node = $this->wallet->node ?? Ethereum::getNode();
@@ -80,7 +82,7 @@ class AddressSync extends BaseSync
             $this->touchEnabled &&
             !$this->force &&
             $this->address->touch_at &&
-            $this->address->touch_at < Date::now()->subSeconds($this->touchPeriod)
+            $this->address->touch_at > Date::now()->subSeconds($this->touchPeriod)
         ) {
             $this->log('No synchronization required, the address has not been touched!', 'success');
             return;
@@ -133,34 +135,55 @@ class AddressSync extends BaseSync
 
     protected function transactions(): static
     {
-        $paginator = $this->explorerApi->getTransactionsPaginator(
-            address: $this->address->address,
-            startBlock: $this->address->sync_block_number ?? 0,
-            perPage: 100,
-            callback: fn() => $this->explorer->increment('requests')
-        );
+        // Use fromBlock if provided, otherwise use sync_block_number, default to 0
+        $startBlock = $this->fromBlock ?? $this->address->sync_block_number ?? 0;
 
-        /** @var TransactionDTO $item */
-        foreach ($paginator as $item) {
-            $this->handleTransaction($item);
+        $this->log('Starting sync ETH transactions from block '.$startBlock.'...');
+        $this->log('Fetching from explorer: '.$this->explorer->name.' for address: '.$this->address->address);
+
+        try {
+            $paginator = $this->explorerApi->getTransactionsPaginator(
+                address: $this->address->address,
+                startBlock: $startBlock,
+                perPage: 100,
+                callback: fn() => $this->explorer->increment('requests')
+            );
+
+            $count = 0;
+            /** @var TransactionDTO $item */
+            foreach ($paginator as $item) {
+                $this->log('Found transaction: '.$item->hash());
+                $this->handleTransaction($item);
+                $count++;
+            }
+
+            $this->log('Processed '.$count.' ETH transactions', 'success');
+        } catch (\Exception $e) {
+            $this->log('Error fetching transactions: '.$e->getMessage(), 'error');
         }
 
         $this->address->update([
             'sync_at' => Date::now(),
         ]);
 
+        $this->log('Starting sync token transactions from block '.$startBlock.'...');
+
         $paginator = $this->explorerApi->getTokenTransactionsPaginator(
             address: $this->address->address,
             contract: null,
-            startBlock: $this->address->sync_block_number ?? 0,
+            startBlock: $startBlock,
             perPage: 100,
             callback: fn() => $this->explorer->increment('requests')
         );
 
+        $count = 0;
         /** @var TokenTransactionDTO $item */
         foreach ($paginator as $item) {
             $this->handleTokenTransaction($item);
+            $count++;
         }
+
+        $this->log('Processed '.$count.' token transactions', 'success');
 
         $this->address->update([
             'sync_at' => Date::now(),
@@ -197,6 +220,7 @@ class AddressSync extends BaseSync
             $deposit = $this->address
                 ->deposits()
                 ->updateOrCreate([
+                    'address_id' => $this->address->id,
                     'txid' => $transaction->hash(),
                 ], [
                     'wallet_id' => $this->address->wallet_id,
@@ -244,6 +268,7 @@ class AddressSync extends BaseSync
             $deposit = $this->address
                 ->deposits()
                 ->updateOrCreate([
+                    'address_id' => $this->address->id,
                     'txid' => $transaction->hash(),
                 ], [
                     'wallet_id' => $this->address->wallet_id,

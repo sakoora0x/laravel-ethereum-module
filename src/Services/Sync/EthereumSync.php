@@ -12,6 +12,13 @@ use sakoora0x\LaravelEthereumModule\Services\BaseSync;
 
 class EthereumSync extends BaseSync
 {
+    protected ?int $fromBlock;
+
+    public function __construct(?int $fromBlock = null)
+    {
+        $this->fromBlock = $fromBlock;
+    }
+
     public function run(): void
     {
         parent::run();
@@ -81,7 +88,10 @@ class EthereumSync extends BaseSync
             ->each(function (EthereumWallet $wallet) {
                 $this->log('--- Staring sync Wallet ' . $wallet->name . '...');
 
-                $service = App::make(WalletSync::class, compact('wallet'));
+                $service = App::make(WalletSync::class, [
+                    'wallet' => $wallet,
+                    'fromBlock' => $this->fromBlock,
+                ]);
 
                 $service->setLogger($this->logger);
 

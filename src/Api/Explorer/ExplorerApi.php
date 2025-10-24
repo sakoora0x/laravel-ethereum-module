@@ -47,6 +47,16 @@ class ExplorerApi
             throw new \Exception($response->body());
         }
 
+        if ($result['status'] !== '1') {
+            $message = $result['message'] ?? 'Unknown error';
+            \Log::warning('Explorer API returned non-success status', [
+                'status' => $result['status'],
+                'message' => $message,
+                'params' => $params,
+                'result' => $result,
+            ]);
+        }
+
         return $result['status'] === '1' ? $result['result'] : [];
     }
 
@@ -86,6 +96,7 @@ class ExplorerApi
     public function getTransactions(string $address, int $startBlock = 0, int $limit = 10, int $page = 1): array
     {
         $data = $this->request([
+            'chainid' => 1,
             'module' => 'account',
             'action' => 'txlist',
             'address' => $address,
@@ -127,6 +138,7 @@ class ExplorerApi
         int $page = 1,
     ): array {
         $params = [
+            'chainid' => 1,
             'module' => 'account',
             'action' => 'tokentx',
             'address' => $address,

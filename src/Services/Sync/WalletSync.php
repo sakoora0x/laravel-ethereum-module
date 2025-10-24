@@ -12,10 +12,12 @@ use sakoora0x\LaravelEthereumModule\Services\BaseSync;
 class WalletSync extends BaseSync
 {
     protected EthereumWallet $wallet;
+    protected ?int $fromBlock;
 
-    public function __construct(EthereumWallet $wallet)
+    public function __construct(EthereumWallet $wallet, ?int $fromBlock = null)
     {
         $this->wallet = $wallet;
+        $this->fromBlock = $fromBlock;
     }
 
     public function run(): void
@@ -37,7 +39,9 @@ class WalletSync extends BaseSync
             $this->log('- Started sync address '.$address->address.'...');
 
             $service = App::make(AddressSync::class, [
-                'address' => $address
+                'address' => $address,
+                'force' => false,
+                'fromBlock' => $this->fromBlock,
             ]);
 
             $service->setLogger($this->logger);

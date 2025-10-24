@@ -17,7 +17,7 @@ use sakoora0x\LaravelEthereumModule\Services\Sync\WalletSync;
 
 class EthereumSyncCommand extends Command
 {
-    protected $signature = 'ethereum:sync';
+    protected $signature = 'ethereum:sync {--from-block=0 : Start syncing from this block number (0 for all history)}';
 
     protected $description = 'Start Ethereum sync';
 
@@ -26,8 +26,16 @@ class EthereumSyncCommand extends Command
         Cache::lock('ethereum', 300)->get(function() {
             $this->line('---- Starting sync Ethereum...');
 
+            $fromBlock = (int) $this->option('from-block');
+
+            if ($fromBlock === 0) {
+                $this->line('---- Syncing from block 0 (all history)');
+            } else {
+                $this->line("---- Syncing from block {$fromBlock}");
+            }
+
             try {
-                $service = App::make(EthereumSync::class);
+                $service = App::make(EthereumSync::class, ['fromBlock' => $fromBlock]);
 
                 $service->setLogger(fn(string $message, ?string $type) => $this->{$type ? ($type === 'success' ? 'info' : $type) : 'line'}($message));
 
